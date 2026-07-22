@@ -14,7 +14,7 @@
 
 <div class="card panel-card mb-4">
   <div class="card-body">
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
       <h2 class="h4 mb-0">Add stock item</h2>
       <span class="text-muted small">Updates the available list used on the form</span>
     </div>
@@ -56,8 +56,8 @@
         />
       </div>
 
-      <div class="table-responsive">
-        <table class="table table-striped align-middle" id="stock-table">
+      <div class="table-responsive d-none d-md-block" data-responsive-set="desktop">
+        <table class="table table-striped align-middle mobile-table" id="stock-table">
           <thead class="table-dark">
             <tr>
               <th style="width: 5%;">Select</th>
@@ -118,21 +118,68 @@
           </tbody>
         </table>
       </div>
+
+      <div class="mobile-table-list d-md-none" id="stock-cards" data-responsive-set="mobile">
+        {% for item in stock_items %}
+          <div class="mobile-table-card" data-search-item data-search-text="{{ item.product_description|lower }}">
+            <div class="mobile-table-card__head">
+              <label class="form-check mobile-select">
+                <input
+                  type="checkbox"
+                  name="delete_ids"
+                  value="{{ item.id }}"
+                  class="form-check-input"
+                  aria-label="Select {{ item.stock_code }} for deletion"
+                />
+                <span class="form-check-label">Delete</span>
+              </label>
+              <div class="mobile-code">{{ item.stock_code }}</div>
+            </div>
+            <div class="mobile-desc">{{ item.product_description }}</div>
+            <label class="form-label mt-3" for="qty-mobile-{{ item.id }}">Quantity</label>
+            <input
+              id="qty-mobile-{{ item.id }}"
+              type="number"
+              min="0"
+              step="1"
+              name="qty_{{ item.id }}"
+              class="form-control"
+              value="0"
+            />
+            <button
+              class="btn btn-outline-danger btn-sm w-100 mt-3"
+              type="submit"
+              formaction="{{ url_for('delete_stock_item', item_id=item.id) }}"
+              formmethod="post"
+              formnovalidate
+              onclick="return confirm('Delete this stock item from the active list?');"
+            >
+              Delete item
+            </button>
+          </div>
+        {% endfor %}
+        {% if not stock_items %}
+          <div class="mobile-table-card text-center text-muted py-4">No stock items available yet. Add one above to start.</div>
+        {% endif %}
+        {% if stock_items %}
+          <div class="mobile-table-card text-center text-muted py-4 d-none" data-search-empty-mobile>No matching product descriptions found.</div>
+        {% endif %}
+      </div>
     </div>
     <div class="card-footer bg-white border-0 pb-4">
-      <div class="d-flex flex-column flex-md-row gap-2 justify-content-end">
+      <div class="d-grid gap-2 d-md-flex justify-content-md-end">
         <button
           type="submit"
           name="action"
           value="delete_selected"
-          class="btn btn-outline-danger btn-lg"
+          class="btn btn-outline-danger btn-lg mobile-action-btn"
           onclick="return confirm('Delete all selected stock items?');"
         >
           Delete Selected
         </button>
-        <button type="submit" name="action" value="save" class="btn btn-primary btn-lg">Save</button>
-        <button type="submit" name="action" value="export_csv" class="btn btn-outline-primary btn-lg">Export CSV</button>
-        <button type="submit" name="action" value="export_pdf" class="btn btn-outline-dark btn-lg">Export PDF</button>
+        <button type="submit" name="action" value="save" class="btn btn-primary btn-lg mobile-action-btn">Save</button>
+        <button type="submit" name="action" value="export_csv" class="btn btn-outline-primary btn-lg mobile-action-btn">Export CSV</button>
+        <button type="submit" name="action" value="export_pdf" class="btn btn-outline-dark btn-lg mobile-action-btn">Export PDF</button>
       </div>
     </div>
   </div>
@@ -141,9 +188,23 @@
   (function () {
     const input = document.getElementById("stock-search");
     const table = document.getElementById("stock-table");
+    const mobileCards = Array.from(document.querySelectorAll("[data-search-item]"));
+    const responsiveSets = Array.from(document.querySelectorAll("[data-responsive-set]"));
     if (!input || !table) return;
 
     const rows = Array.from(table.querySelectorAll("tbody tr"));
+
+    function syncResponsiveControls() {
+      const mobile = window.matchMedia("(max-width: 767.98px)").matches;
+
+      responsiveSets.forEach((set) => {
+        const isMobileSet = set.dataset.responsiveSet === "mobile";
+        const shouldDisable = mobile ? !isMobileSet : isMobileSet;
+        set.querySelectorAll("input, button, select, textarea").forEach((field) => {
+          field.disabled = shouldDisable;
+        });
+      });
+    }
 
     function applyFilter() {
       const query = input.value.trim().toLowerCase();
@@ -157,13 +218,26 @@
         if (visible) visibleCount += 1;
       });
 
+      mobileCards.forEach((card) => {
+        const text = card.dataset.searchText || "";
+        const visible = !query || text.includes(query);
+        card.classList.toggle("d-none", !visible);
+      });
+
       const existingEmpty = table.querySelector("[data-search-empty]");
       if (existingEmpty) {
         existingEmpty.style.display = visibleCount ? "none" : "";
       }
+
+      const mobileEmpty = document.querySelector("[data-search-empty-mobile]");
+      if (mobileEmpty) {
+        mobileEmpty.classList.toggle("d-none", visibleCount !== 0);
+      }
     }
 
     input.addEventListener("input", applyFilter);
+    window.addEventListener("resize", syncResponsiveControls);
+    syncResponsiveControls();
     applyFilter();
   })();
 </script>

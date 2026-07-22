@@ -9,8 +9,8 @@
 
 <div class="card panel-card">
   <div class="card-body">
-    <div class="table-responsive">
-      <table class="table table-hover align-middle">
+    <div class="table-responsive d-none d-md-block">
+      <table class="table table-hover align-middle mobile-table">
         <thead class="table-dark">
           <tr>
             <th>ID</th>
@@ -49,6 +49,42 @@
           {% endif %}
         </tbody>
       </table>
+    </div>
+
+    <div class="mobile-table-list d-md-none">
+      {% for form in forms %}
+        <div class="mobile-table-card">
+          <div class="mobile-table-card__head">
+            <div class="mobile-code">#{{ form.id }}</div>
+            <div class="text-muted small">{{ form.created_at }}</div>
+          </div>
+          <div class="mobile-desc">{{ form.updated_at }}</div>
+          <div class="mobile-meta-grid mt-3">
+            <div>
+              <div class="mobile-meta-label">Filled lines</div>
+              <div class="mobile-meta-value">{{ form.filled_lines }}</div>
+            </div>
+            <div>
+              <div class="mobile-meta-label">Total quantity</div>
+              <div class="mobile-meta-value">{{ form.total_quantity }}</div>
+            </div>
+          </div>
+          <div class="d-grid gap-2 mt-3">
+            <a class="btn btn-primary" href="{{ url_for('view_form', form_id=form.id) }}">View</a>
+            <a class="btn btn-outline-secondary" href="{{ url_for('edit_form', form_id=form.id) }}">Edit</a>
+            <div class="d-grid grid-2 gap-2">
+              <a class="btn btn-outline-success" href="{{ url_for('export_form_csv', form_id=form.id) }}">CSV</a>
+              <a class="btn btn-outline-dark" href="{{ url_for('export_form_pdf', form_id=form.id) }}">PDF</a>
+            </div>
+            <form method="post" action="{{ url_for('delete_form', form_id=form.id) }}" onsubmit="return confirm('Delete this saved form?');">
+              <button class="btn btn-outline-danger w-100" type="submit">Delete</button>
+            </form>
+          </div>
+        </div>
+      {% endfor %}
+      {% if not forms %}
+        <div class="mobile-table-card text-center text-muted py-5">No saved forms yet. Create and save one from the main page.</div>
+      {% endif %}
     </div>
   </div>
 </div>

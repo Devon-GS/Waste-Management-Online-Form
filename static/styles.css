@@ -89,3 +89,130 @@ body {
 .alert {
   border-radius: 1rem;
 }
+
+.mobile-table-list {
+  display: grid;
+  gap: 0.875rem;
+}
+
+.mobile-table-card {
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(16, 42, 67, 0.08);
+  border-radius: 1rem;
+  box-shadow: 0 12px 28px rgba(16, 42, 67, 0.08);
+  padding: 1rem;
+}
+
+.mobile-table-card__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: flex-start;
+  margin-bottom: 0.35rem;
+}
+
+.mobile-code {
+  font-weight: 800;
+  color: #102a43;
+  word-break: break-word;
+}
+
+.mobile-desc {
+  color: #334155;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.mobile-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(24, 78, 119, 0.1);
+  color: #184e77;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.mobile-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.mobile-meta-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6b7280;
+}
+
+.mobile-meta-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #102a43;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.mobile-action-btn {
+  width: 100%;
+}
+
+@media (max-width: 767.98px) {
+  .hero-card {
+    padding: 1.25rem;
+  }
+
+  .metric-card {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .btn-lg {
+    width: 100%;
+  }
+
+  .table-responsive {
+    display: none;
+  }
+
+  .card-body {
+    padding: 1rem;
+  }
+
+  .card-footer {
+    padding: 1rem;
+  }
+
+  .form-control,
+  .btn {
+    width: 100%;
+  }
+
+  .mobile-table-card .form-control {
+    width: 100%;
+  }
+
+  .mobile-select {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+  }
+
+  .mobile-select .form-check-input {
+    margin-top: 0;
+  }
+}
+
+@media (min-width: 768px) {
+  .mobile-table-list {
+    display: none;
+  }
+}
