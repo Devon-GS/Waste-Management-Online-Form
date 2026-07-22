@@ -457,10 +457,40 @@ def delete_stock_item(item_id: int):
     return redirect(url_for("index"))
 
 
+def delete_stock_items(item_ids: list[int]) -> int:
+    if not item_ids:
+        return 0
+
+    placeholders = ",".join("?" for _ in item_ids)
+    db = get_db()
+    cursor = db.execute(
+        f"DELETE FROM stock_items WHERE id IN ({placeholders})",
+        item_ids,
+    )
+    db.commit()
+    return cursor.rowcount
+
+
 @app.route("/waste-form", methods=["POST"])
 def save_or_export_waste_form():
     stock_items = fetch_stock_items()
     action = request.form.get("action", "save")
+
+    if action == "delete_selected":
+        selected_ids = []
+        for raw_id in request.form.getlist("delete_ids"):
+            try:
+                selected_ids.append(int(raw_id))
+            except (TypeError, ValueError):
+                continue
+
+        deleted_count = delete_stock_items(selected_ids)
+        if deleted_count:
+          flash(f"Deleted {deleted_count} stock item(s).", "warning")
+        else:
+          flash("Select at least one stock item to delete.", "danger")
+        return redirect(url_for("index"))
+
     form_id = save_waste_form_from_request(stock_items)
 
     if action == "save":

@@ -49,6 +49,7 @@
         <table class="table table-striped align-middle">
           <thead class="table-dark">
             <tr>
+              <th style="width: 5%;">Select</th>
               <th style="width: 18%;">Stock code</th>
               <th>Product description</th>
               <th style="width: 16%;">Quantity</th>
@@ -58,6 +59,15 @@
           <tbody>
             {% for item in stock_items %}
               <tr>
+                <td>
+                  <input
+                    type="checkbox"
+                    name="delete_ids"
+                    value="{{ item.id }}"
+                    class="form-check-input"
+                    aria-label="Select {{ item.stock_code }} for deletion"
+                  />
+                </td>
                 <td class="fw-semibold">{{ item.stock_code }}</td>
                 <td>{{ item.product_description }}</td>
                 <td>
@@ -86,7 +96,7 @@
             {% endfor %}
             {% if not stock_items %}
               <tr>
-                <td colspan="4" class="text-center text-muted py-4">No stock items available yet. Add one above to start.</td>
+                <td colspan="5" class="text-center text-muted py-4">No stock items available yet. Add one above to start.</td>
               </tr>
             {% endif %}
           </tbody>
@@ -95,6 +105,15 @@
     </div>
     <div class="card-footer bg-white border-0 pb-4">
       <div class="d-flex flex-column flex-md-row gap-2 justify-content-end">
+        <button
+          type="submit"
+          name="action"
+          value="delete_selected"
+          class="btn btn-outline-danger btn-lg"
+          onclick="return confirm('Delete all selected stock items?');"
+        >
+          Delete Selected
+        </button>
         <button type="submit" name="action" value="save" class="btn btn-primary btn-lg">Save</button>
         <button type="submit" name="action" value="export_csv" class="btn btn-outline-primary btn-lg">Export CSV</button>
         <button type="submit" name="action" value="export_pdf" class="btn btn-outline-dark btn-lg">Export PDF</button>
