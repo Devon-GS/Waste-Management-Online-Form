@@ -13,6 +13,8 @@ body {
     var(--page-bg);
   color: var(--ink);
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .navbar-shell {
@@ -22,6 +24,11 @@ body {
 
 .page-shell {
   position: relative;
+  flex: 1 0 auto;
+}
+
+footer {
+  flex-shrink: 0;
 }
 
 .hero-card,
