@@ -1,0 +1,403 @@
+{% extends "base.html" %}
+{% block title %}Broken Pies{% endblock %}
+{% block content %}
+<div class="hero-card mb-4">
+  <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-end">
+    <div>
+      <p class="eyebrow mb-2">Pie tracking</p>
+      <h1 class="display-6 fw-bold mb-2">Broken Pies</h1>
+      <p class="text-white-50 mb-0">Track broken pies, save counts, and log returned stock with the return date.</p>
+    </div>
+  </div>
+</div>
+
+<form method="post" class="mb-4">
+  <input type="hidden" name="action" value="save_broken" />
+  <div class="card panel-card">
+    <div class="card-body">
+      <div class="d-flex flex-column flex-md-row justify-content-between gap-2 align-items-md-center mb-3">
+        <div>
+          <h2 class="h4 mb-1">Broken pie counts</h2>
+          <p class="text-muted mb-0">Enter the number of broken pies for each code and save the snapshot.</p>
+        </div>
+      </div>
+
+      <div class="table-responsive d-none d-md-block" data-responsive-set="desktop">
+        <table class="table table-striped align-middle mobile-table">
+          <thead class="table-dark">
+            <tr>
+              <th style="width: 12%;">Code</th>
+              <th>Product description</th>
+              <th style="width: 18%;">Input</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in broken_pies %}
+              <tr>
+                <td class="fw-semibold">{{ item.code }}</td>
+                <td>{{ item.product_description }}</td>
+                <td>
+                  <input type="number" min="0" step="1" name="broken_{{ item.code }}" class="form-control" value="0" />
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mobile-table-list d-md-none" data-responsive-set="mobile">
+        {% for item in broken_pies %}
+          <div class="mobile-table-card">
+            <div class="mobile-table-card__head">
+              <div class="mobile-code">{{ item.code }}</div>
+            </div>
+            <div class="mobile-desc">{{ item.product_description }}</div>
+            <label class="form-label mt-3" for="broken-mobile-{{ loop.index }}">Input</label>
+            <input id="broken-mobile-{{ loop.index }}" type="number" min="0" step="1" name="broken_{{ item.code }}" class="form-control" value="0" />
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="card-footer bg-white border-0 pb-4">
+      <div class="d-grid d-md-flex justify-content-md-end">
+        <button type="submit" class="btn btn-primary btn-lg mobile-action-btn">Save broken pies</button>
+      </div>
+    </div>
+  </div>
+</form>
+
+<div class="card panel-card mb-4">
+  <div class="card-body">
+    <div class="d-flex flex-column flex-md-row justify-content-between gap-2 align-items-md-center mb-3">
+      <div>
+        <h2 class="h4 mb-1">Returned pies</h2>
+        <p class="text-muted mb-0">Save what pies were returned and the date returned.</p>
+      </div>
+    </div>
+
+    <form method="post" class="row g-3">
+      <input type="hidden" name="action" value="save_return" />
+      <div class="col-md-2">
+        <label class="form-label">Code</label>
+        <select name="return_code" id="return-code" class="form-control">
+          <option value="">Select code</option>
+          {% for item in broken_pies %}
+            <option value="{{ item.code }}" data-description="{{ item.product_description }}">{{ item.code }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-5">
+        <label class="form-label">Product description</label>
+        <input type="text" name="return_description" id="return-description" class="form-control" placeholder="Auto-filled from code" />
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Quantity returned</label>
+        <input type="number" min="0" step="1" name="return_quantity" class="form-control" value="0" />
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Date returned</label>
+        <input type="date" name="date_returned" class="form-control" value="{{ today }}" />
+      </div>
+      <div class="col-md-1 d-flex align-items-end">
+        <button class="btn btn-primary w-100" type="submit">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card panel-card mb-4">
+  <div class="card-body">
+    <div class="d-flex flex-column flex-md-row justify-content-between gap-2 align-items-md-center mb-3">
+      <div>
+        <h2 class="h4 mb-1">Saved broken pie counts</h2>
+        <p class="text-muted mb-0">Recent saved snapshots of broken pie quantities.</p>
+      </div>
+    </div>
+
+    <div class="table-responsive d-none d-md-block">
+      <table class="table table-hover align-middle">
+        <thead class="table-dark">
+          <tr>
+            <th>Entry</th>
+            <th>Created at</th>
+            <th>Details</th>
+            <th style="width: 12%;">Edit</th>
+            <th style="width: 12%;">View</th>
+            <th style="width: 12%;">Delete</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for entry in broken_entries %}
+            <tr>
+              <td class="fw-semibold">#{{ entry.id }}</td>
+              <td>{{ entry.created_at }}</td>
+              <td>
+                {% set parts = [] %}
+                {% for item in entry["items"] %}
+                  {% set _ = parts.append(item.code ~ ': ' ~ item.quantity) %}
+                {% endfor %}
+                {{ parts|join(', ') }}
+              </td>
+              <td>
+                <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('edit_broken_pies_entry', entry_id=entry.id) }}">Edit</a>
+              </td>
+              <td>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-primary js-view-entry"
+                  data-entry-id="{{ entry.id }}"
+                  data-entry-created="{{ entry.created_at }}"
+                  data-entry-items='{{ entry["items"] | tojson | forceescape }}'
+                >
+                  View
+                </button>
+              </td>
+              <td>
+                <form method="post" action="{{ url_for('delete_broken_pies_entry', entry_id=entry.id) }}" onsubmit="return confirm('Delete this broken pie snapshot?');">
+                  <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+          {% if not broken_entries %}
+            <tr>
+              <td colspan="6" class="text-center text-muted py-4">No broken pie counts saved yet.</td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mobile-table-list d-md-none">
+      {% for entry in broken_entries %}
+        <div class="mobile-table-card">
+          <div class="mobile-table-card__head">
+            <div class="mobile-code">#{{ entry.id }}</div>
+            <div class="text-muted small">{{ entry.created_at }}</div>
+          </div>
+          <div class="mobile-desc">
+            {% set parts = [] %}
+            {% for item in entry["items"] %}
+              {% set _ = parts.append(item.code ~ ': ' ~ item.quantity) %}
+            {% endfor %}
+            {{ parts|join(', ') }}
+          </div>
+          <button
+            type="button"
+            class="btn btn-outline-primary btn-sm w-100 mt-3 js-view-entry"
+            data-entry-id="{{ entry.id }}"
+            data-entry-created="{{ entry.created_at }}"
+            data-entry-items='{{ entry["items"] | tojson | forceescape }}'
+          >
+            View
+          </button>
+          <a class="btn btn-outline-secondary btn-sm w-100 mt-2" href="{{ url_for('edit_broken_pies_entry', entry_id=entry.id) }}">Edit</a>
+          <form method="post" action="{{ url_for('delete_broken_pies_entry', entry_id=entry.id) }}" onsubmit="return confirm('Delete this broken pie snapshot?');" class="mt-2">
+            <button type="submit" class="btn btn-outline-danger btn-sm w-100">Delete</button>
+          </form>
+        </div>
+      {% endfor %}
+      {% if not broken_entries %}
+        <div class="mobile-table-card text-center text-muted py-4">No broken pie counts saved yet.</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="card panel-card">
+  <div class="card-body">
+    <div class="d-flex flex-column flex-md-row justify-content-between gap-2 align-items-md-center mb-3">
+      <div>
+        <h2 class="h4 mb-1">Returned pie log</h2>
+        <p class="text-muted mb-0">Records of returned pies and the date returned.</p>
+      </div>
+    </div>
+
+    <div class="table-responsive d-none d-md-block">
+      <table class="table table-hover align-middle">
+        <thead class="table-dark">
+          <tr>
+            <th>Code</th>
+            <th>Product description</th>
+            <th>Quantity</th>
+            <th>Date returned</th>
+            <th>Saved at</th>
+            <th style="width: 12%;">Edit</th>
+            <th style="width: 12%;">Delete</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in return_rows %}
+            <tr>
+              <td class="fw-semibold">{{ row.code }}</td>
+              <td>{{ row.product_description }}</td>
+              <td>{{ row.quantity }}</td>
+              <td>{{ row.date_returned }}</td>
+              <td>{{ row.created_at }}</td>
+              <td>
+                <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('edit_broken_pies_return', return_id=row.id) }}">Edit</a>
+              </td>
+              <td>
+                <form method="post" action="{{ url_for('delete_broken_pies_return', return_id=row.id) }}" onsubmit="return confirm('Delete this returned pie log entry?');">
+                  <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+          {% if not return_rows %}
+            <tr>
+              <td colspan="7" class="text-center text-muted py-4">No returned pies recorded yet.</td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mobile-table-list d-md-none">
+      {% for row in return_rows %}
+        <div class="mobile-table-card">
+          <div class="mobile-table-card__head">
+            <div class="mobile-code">{{ row.code }}</div>
+            <div class="mobile-pill">{{ row.quantity }}</div>
+          </div>
+          <div class="mobile-desc">{{ row.product_description }}</div>
+          <div class="mobile-meta-grid mt-3">
+            <div>
+              <div class="mobile-meta-label">Date returned</div>
+              <div class="mobile-meta-value">{{ row.date_returned }}</div>
+            </div>
+            <div>
+              <div class="mobile-meta-label">Saved at</div>
+              <div class="mobile-meta-value">{{ row.created_at }}</div>
+            </div>
+          </div>
+          <a class="btn btn-outline-secondary btn-sm w-100 mt-3" href="{{ url_for('edit_broken_pies_return', return_id=row.id) }}">Edit</a>
+          <form method="post" action="{{ url_for('delete_broken_pies_return', return_id=row.id) }}" onsubmit="return confirm('Delete this returned pie log entry?');" class="mt-3">
+            <button type="submit" class="btn btn-outline-danger btn-sm w-100">Delete</button>
+          </form>
+        </div>
+      {% endfor %}
+      {% if not return_rows %}
+        <div class="mobile-table-card text-center text-muted py-4">No returned pies recorded yet.</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="app-modal-backdrop d-none" id="entry-modal-backdrop" aria-hidden="true">
+  <div class="app-modal" role="dialog" aria-modal="true" aria-labelledby="entry-modal-title">
+    <div class="app-modal__head">
+      <div>
+        <div class="eyebrow mb-1">Broken pie snapshot</div>
+        <h3 class="h4 mb-0" id="entry-modal-title">Entry #</h3>
+      </div>
+      <button type="button" class="btn btn-sm btn-outline-light app-modal__close" id="entry-modal-close">Close</button>
+    </div>
+    <div class="app-modal__body">
+      <div class="text-muted small mb-3" id="entry-modal-created"></div>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+          <thead class="table-dark">
+            <tr>
+              <th>Code</th>
+              <th>Product description</th>
+              <th>Quantity</th>
+            </tr>
+          </thead>
+          <tbody id="entry-modal-items"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const responsiveSets = Array.from(document.querySelectorAll("[data-responsive-set]"));
+    function syncResponsiveControls() {
+      const mobile = window.matchMedia("(max-width: 767.98px)").matches;
+      responsiveSets.forEach((set) => {
+        const isMobileSet = set.dataset.responsiveSet === "mobile";
+        const shouldDisable = mobile ? !isMobileSet : isMobileSet;
+        set.querySelectorAll("input, button, select, textarea").forEach((field) => {
+          field.disabled = shouldDisable;
+        });
+      });
+    }
+    window.addEventListener("resize", syncResponsiveControls);
+    syncResponsiveControls();
+
+    const codeSelect = document.getElementById("return-code");
+    const descriptionInput = document.getElementById("return-description");
+    if (!codeSelect || !descriptionInput) return;
+
+    function syncDescription() {
+      const selected = codeSelect.selectedOptions[0];
+      descriptionInput.value = selected ? (selected.dataset.description || "") : "";
+    }
+
+    codeSelect.addEventListener("change", syncDescription);
+    syncDescription();
+
+    const backdrop = document.getElementById("entry-modal-backdrop");
+    const closeButton = document.getElementById("entry-modal-close");
+    const modalTitle = document.getElementById("entry-modal-title");
+    const modalCreated = document.getElementById("entry-modal-created");
+    const modalItems = document.getElementById("entry-modal-items");
+
+    function closeModal() {
+      backdrop.classList.add("d-none");
+      backdrop.setAttribute("aria-hidden", "true");
+      modalItems.innerHTML = "";
+    }
+
+    function openModal(button) {
+      const entryId = button.dataset.entryId || "";
+      const createdAt = button.dataset.entryCreated || "";
+      let items = [];
+      try {
+        items = JSON.parse(button.dataset.entryItems || "[]");
+      } catch (error) {
+        items = [];
+      }
+
+      modalTitle.textContent = `Entry #${entryId}`;
+      modalCreated.textContent = `Created at ${createdAt}`;
+      modalItems.innerHTML = "";
+      items.forEach((item) => {
+        const row = document.createElement("tr");
+        const codeCell = document.createElement("td");
+        const descCell = document.createElement("td");
+        const qtyCell = document.createElement("td");
+
+        codeCell.className = "fw-semibold";
+        codeCell.textContent = item.code ?? "";
+        descCell.textContent = item.product_description ?? "";
+        qtyCell.textContent = item.quantity ?? "";
+
+        row.appendChild(codeCell);
+        row.appendChild(descCell);
+        row.appendChild(qtyCell);
+        modalItems.appendChild(row);
+      });
+
+      backdrop.classList.remove("d-none");
+      backdrop.setAttribute("aria-hidden", "false");
+    }
+
+    document.querySelectorAll(".js-view-entry").forEach((button) => {
+      button.addEventListener("click", () => openModal(button));
+    });
+
+    closeButton.addEventListener("click", closeModal);
+    backdrop.addEventListener("click", (event) => {
+      if (event.target === backdrop) closeModal();
+    });
+    window.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !backdrop.classList.contains("d-none")) {
+        closeModal();
+      }
+    });
+  })();
+</script>
+{% endblock %}

@@ -5,6 +5,7 @@ import io
 import os
 import sqlite3
 import zlib
+from datetime import date
 from pathlib import Path
 
 from flask import (
@@ -22,6 +23,13 @@ from flask import (
 BASE_DIR = Path(__file__).resolve().parent
 DB_PATH = Path(os.environ.get("DB_PATH", str(BASE_DIR / "waste_forms.db")))
 CSV_PATH = BASE_DIR / "Stock Items.csv"
+BROKEN_PIES = [
+    ("#1", "P BEEF BURGER PIES (BROKEN)"),
+    ("#2", "P NORMAL PIES (BROKEN)"),
+    ("#4", "SAMOSA (BROKEN)"),
+    ("#6", "P MEGA PIES (BROKEN)"),
+    ("#8", "COCKTAIL SUSAGE (BROCKEN)"),
+]
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-key")
@@ -73,6 +81,29 @@ def init_db() -> None:
                 quantity INTEGER NOT NULL DEFAULT 0,
                 FOREIGN KEY (waste_form_id) REFERENCES waste_forms (id) ON DELETE CASCADE,
                 FOREIGN KEY (stock_item_id) REFERENCES stock_items (id) ON DELETE SET NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS broken_pie_entries (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+
+            CREATE TABLE IF NOT EXISTS broken_pie_entry_items (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                broken_pie_entry_id INTEGER NOT NULL,
+                code TEXT NOT NULL,
+                product_description TEXT NOT NULL,
+                quantity INTEGER NOT NULL DEFAULT 0,
+                FOREIGN KEY (broken_pie_entry_id) REFERENCES broken_pie_entries (id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS broken_pie_returns (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                code TEXT NOT NULL,
+                product_description TEXT NOT NULL,
+                quantity INTEGER NOT NULL DEFAULT 0,
+                date_returned TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             );
             """
         )
@@ -176,6 +207,197 @@ def fetch_form_items(form_id: int) -> list[sqlite3.Row]:
         """,
         (form_id,),
     ).fetchall()
+
+
+def fetch_broken_pie_items() -> list[dict[str, str]]:
+    return [{"code": code, "product_description": description} for code, description in BROKEN_PIES]
+
+
+def fetch_broken_pie_entries() -> list[sqlite3.Row]:
+    db = get_db()
+    return db.execute(
+        """
+        SELECT id, created_at
+        FROM broken_pie_entries
+        ORDER BY id DESC
+        """
+    ).fetchall()
+
+
+def fetch_broken_pie_entry_items(entry_id: int) -> list[sqlite3.Row]:
+    db = get_db()
+    return db.execute(
+        """
+        SELECT id, code, product_description, quantity
+        FROM broken_pie_entry_items
+        WHERE broken_pie_entry_id = ?
+        ORDER BY code COLLATE NOCASE
+        """,
+        (entry_id,),
+    ).fetchall()
+
+
+def fetch_broken_pie_entry(entry_id: int) -> dict | None:
+    db = get_db()
+    entry = db.execute(
+        "SELECT id, created_at FROM broken_pie_entries WHERE id = ?",
+        (entry_id,),
+    ).fetchone()
+    if entry is None:
+        return None
+    items = fetch_broken_pie_entry_items(entry_id)
+    return {
+        "id": entry["id"],
+        "created_at": entry["created_at"],
+        "items": [
+            {
+                "code": item["code"],
+                "product_description": item["product_description"],
+                "quantity": item["quantity"],
+            }
+            for item in items
+        ],
+    }
+
+
+def fetch_broken_pie_returns() -> list[sqlite3.Row]:
+    db = get_db()
+    return db.execute(
+        """
+        SELECT id, code, product_description, quantity, date_returned, created_at
+        FROM broken_pie_returns
+        ORDER BY date_returned DESC, id DESC
+        """
+    ).fetchall()
+
+
+def fetch_broken_pie_return(return_id: int) -> sqlite3.Row | None:
+    db = get_db()
+    return db.execute(
+        """
+        SELECT id, code, product_description, quantity, date_returned, created_at
+        FROM broken_pie_returns
+        WHERE id = ?
+        """,
+        (return_id,),
+    ).fetchone()
+
+
+def save_broken_pie_entry() -> int:
+    db = get_db()
+    db.execute("INSERT INTO broken_pie_entries DEFAULT VALUES")
+    entry_id = db.execute("SELECT last_insert_rowid()").fetchone()[0]
+
+    item_rows = []
+    for item in BROKEN_PIES:
+        code, description = item
+        quantity = parse_quantity(request.form.get(f"broken_{code}", "0"))
+        item_rows.append((entry_id, code, description, quantity))
+
+    db.executemany(
+        """
+        INSERT INTO broken_pie_entry_items
+            (broken_pie_entry_id, code, product_description, quantity)
+        VALUES (?, ?, ?, ?)
+        """,
+        item_rows,
+    )
+    db.commit()
+    return entry_id
+
+
+def save_broken_pie_return() -> None:
+    code = request.form.get("return_code", "").strip()
+    product_description = request.form.get("return_description", "").strip()
+    quantity = parse_quantity(request.form.get("return_quantity", "0"))
+    date_returned = request.form.get("date_returned", "").strip()
+
+    if not code or not product_description or not date_returned:
+        raise ValueError("Missing return data")
+
+    db = get_db()
+    db.execute(
+        """
+        INSERT INTO broken_pie_returns (code, product_description, quantity, date_returned)
+        VALUES (?, ?, ?, ?)
+        """,
+        (code, product_description, quantity, date_returned),
+    )
+    db.commit()
+
+
+def update_broken_pie_entry(entry_id: int) -> None:
+    db = get_db()
+    db.execute("DELETE FROM broken_pie_entry_items WHERE broken_pie_entry_id = ?", (entry_id,))
+
+    item_rows = []
+    for code, description in BROKEN_PIES:
+        quantity = parse_quantity(request.form.get(f"broken_{code}", "0"))
+        item_rows.append((entry_id, code, description, quantity))
+
+    db.executemany(
+        """
+        INSERT INTO broken_pie_entry_items
+            (broken_pie_entry_id, code, product_description, quantity)
+        VALUES (?, ?, ?, ?)
+        """,
+        item_rows,
+    )
+    db.commit()
+
+
+def update_broken_pie_return(return_id: int) -> None:
+    code = request.form.get("return_code", "").strip()
+    product_description = request.form.get("return_description", "").strip()
+    quantity = parse_quantity(request.form.get("return_quantity", "0"))
+    date_returned = request.form.get("date_returned", "").strip()
+
+    if not code or not product_description or not date_returned:
+        raise ValueError("Missing return data")
+
+    db = get_db()
+    db.execute(
+        """
+        UPDATE broken_pie_returns
+        SET code = ?, product_description = ?, quantity = ?, date_returned = ?
+        WHERE id = ?
+        """,
+        (code, product_description, quantity, date_returned, return_id),
+    )
+    db.commit()
+
+
+def delete_broken_pie_entry(entry_id: int) -> None:
+    db = get_db()
+    db.execute("DELETE FROM broken_pie_entries WHERE id = ?", (entry_id,))
+    db.commit()
+
+
+def delete_broken_pie_return(return_id: int) -> None:
+    db = get_db()
+    db.execute("DELETE FROM broken_pie_returns WHERE id = ?", (return_id,))
+    db.commit()
+
+
+def build_broken_pie_entries() -> list[dict]:
+    entries = []
+    for entry in fetch_broken_pie_entries():
+        items = fetch_broken_pie_entry_items(entry["id"])
+        entries.append(
+            {
+                "id": entry["id"],
+                "created_at": entry["created_at"],
+                "items": [
+                    {
+                        "code": item["code"],
+                        "product_description": item["product_description"],
+                        "quantity": item["quantity"],
+                    }
+                    for item in items
+                ],
+            }
+        )
+    return entries
 
 
 def build_form_payload(form_id: int) -> dict:
@@ -566,6 +788,98 @@ def edit_form(form_id: int):
         active_page="forms",
         edit_mode=True,
     )
+
+
+@app.route("/broken-pies", methods=["GET", "POST"])
+def broken_pies():
+    if request.method == "POST":
+        action = request.form.get("action", "save_broken")
+
+        if action == "save_broken":
+            save_broken_pie_entry()
+            flash("Broken pie counts saved.", "success")
+            return redirect(url_for("broken_pies"))
+
+        if action == "save_return":
+            try:
+                save_broken_pie_return()
+            except ValueError:
+                flash("Please provide code, product description, quantity, and return date.", "danger")
+                return redirect(url_for("broken_pies"))
+            flash("Returned pie record saved.", "success")
+            return redirect(url_for("broken_pies"))
+
+    return render_template(
+        "broken_pies.html",
+        active_page="broken_pies",
+        broken_pies=fetch_broken_pie_items(),
+        broken_entries=build_broken_pie_entries(),
+        return_rows=fetch_broken_pie_returns(),
+        today=date.today().isoformat(),
+    )
+
+
+@app.route("/broken-pies/entries/<int:entry_id>/edit", methods=["GET", "POST"])
+def edit_broken_pies_entry(entry_id: int):
+    entry = fetch_broken_pie_entry(entry_id)
+    if entry is None:
+        flash("Broken pie snapshot not found.", "danger")
+        return redirect(url_for("broken_pies"))
+
+    if request.method == "POST":
+        update_broken_pie_entry(entry_id)
+        flash("Broken pie snapshot updated.", "success")
+        return redirect(url_for("broken_pies"))
+
+    return render_template(
+        "broken_pie_edit.html",
+        active_page="broken_pies",
+        edit_type="snapshot",
+        entry=entry,
+        quantities={item["code"]: item["quantity"] for item in entry["items"]},
+        broken_pies=fetch_broken_pie_items(),
+        today=date.today().isoformat(),
+    )
+
+
+@app.route("/broken-pies/returns/<int:return_id>/edit", methods=["GET", "POST"])
+def edit_broken_pies_return(return_id: int):
+    row = fetch_broken_pie_return(return_id)
+    if row is None:
+        flash("Returned pie log entry not found.", "danger")
+        return redirect(url_for("broken_pies"))
+
+    if request.method == "POST":
+        try:
+            update_broken_pie_return(return_id)
+        except ValueError:
+            flash("Please provide code, product description, quantity, and return date.", "danger")
+            return redirect(url_for("edit_broken_pies_return", return_id=return_id))
+        flash("Returned pie log entry updated.", "success")
+        return redirect(url_for("broken_pies"))
+
+    return render_template(
+        "broken_pie_edit.html",
+        active_page="broken_pies",
+        edit_type="return",
+        row=row,
+        broken_pies=fetch_broken_pie_items(),
+        today=date.today().isoformat(),
+    )
+
+
+@app.route("/broken-pies/entries/<int:entry_id>/delete", methods=["POST"])
+def delete_broken_pies_entry(entry_id: int):
+    delete_broken_pie_entry(entry_id)
+    flash("Broken pie snapshot deleted.", "warning")
+    return redirect(url_for("broken_pies"))
+
+
+@app.route("/broken-pies/returns/<int:return_id>/delete", methods=["POST"])
+def delete_broken_pies_return(return_id: int):
+    delete_broken_pie_return(return_id)
+    flash("Returned pie log entry deleted.", "warning")
+    return redirect(url_for("broken_pies"))
 
 
 @app.route("/forms/<int:form_id>/delete", methods=["POST"])

@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}{{ "Edit Broken Pie Snapshot" if edit_type == "snapshot" else "Edit Returned Pie Log" }}{% endblock %}
+{% block content %}
+<div class="hero-card mb-4">
+  <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-end">
+    <div>
+      <p class="eyebrow mb-2">Broken pies</p>
+      {% if edit_type == "snapshot" %}
+        <h1 class="display-6 fw-bold mb-2">Edit Broken Pie Snapshot #{{ entry.id }}</h1>
+        <p class="text-white-50 mb-0">Created {{ entry.created_at }}</p>
+      {% else %}
+        <h1 class="display-6 fw-bold mb-2">Edit Returned Pie Log #{{ row.id }}</h1>
+        <p class="text-white-50 mb-0">Saved {{ row.created_at }}</p>
+      {% endif %}
+    </div>
+    <a class="btn btn-light fw-semibold" href="{{ url_for('broken_pies') }}">Back to Broken Pies</a>
+  </div>
+</div>
+
+<div class="card panel-card">
+  <div class="card-body">
+    {% if edit_type == "snapshot" %}
+      <form method="post">
+        <div class="table-responsive d-none d-md-block">
+          <table class="table table-striped align-middle">
+            <thead class="table-dark">
+              <tr>
+                <th style="width: 12%;">Code</th>
+                <th>Product description</th>
+                <th style="width: 18%;">Input</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in broken_pies %}
+                <tr>
+                  <td class="fw-semibold">{{ item.code }}</td>
+                  <td>{{ item.product_description }}</td>
+                  <td>
+                    <input type="number" min="0" step="1" name="broken_{{ item.code }}" class="form-control" value="{{ quantities[item.code] if item.code in quantities else 0 }}" />
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="mobile-table-list d-md-none">
+          {% for item in broken_pies %}
+            <div class="mobile-table-card">
+              <div class="mobile-table-card__head">
+                <div class="mobile-code">{{ item.code }}</div>
+              </div>
+              <div class="mobile-desc">{{ item.product_description }}</div>
+              <label class="form-label mt-3" for="broken-edit-mobile-{{ loop.index }}">Input</label>
+              <input id="broken-edit-mobile-{{ loop.index }}" type="number" min="0" step="1" name="broken_{{ item.code }}" class="form-control" value="{{ quantities[item.code] if item.code in quantities else 0 }}" />
+            </div>
+          {% endfor %}
+        </div>
+
+        <div class="d-grid d-md-flex justify-content-md-end gap-2 mt-3">
+          <button type="submit" class="btn btn-primary btn-lg">Save changes</button>
+        </div>
+      </form>
+    {% else %}
+      <form method="post" class="row g-3">
+        <div class="col-md-2">
+          <label class="form-label">Code</label>
+          <select name="return_code" id="return-code" class="form-control">
+            <option value="">Select code</option>
+            {% for item in broken_pies %}
+              <option value="{{ item.code }}" data-description="{{ item.product_description }}" {% if row.code == item.code %}selected{% endif %}>{{ item.code }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-5">
+          <label class="form-label">Product description</label>
+          <input type="text" name="return_description" id="return-description" class="form-control" value="{{ row.product_description }}" />
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Quantity returned</label>
+          <input type="number" min="0" step="1" name="return_quantity" class="form-control" value="{{ row.quantity }}" />
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Date returned</label>
+          <input type="date" name="date_returned" class="form-control" value="{{ row.date_returned }}" />
+        </div>
+        <div class="col-md-1 d-flex align-items-end">
+          <button class="btn btn-primary w-100" type="submit">Save</button>
+        </div>
+      </form>
+    {% endif %}
+  </div>
+</div>
+
+{% if edit_type == "return" %}
+<script>
+  (function () {
+    const codeSelect = document.getElementById("return-code");
+    const descriptionInput = document.getElementById("return-description");
+    if (!codeSelect || !descriptionInput) return;
+
+    function syncDescription() {
+      const selected = codeSelect.selectedOptions[0];
+      descriptionInput.value = selected ? (selected.dataset.description || "") : "";
+    }
+
+    codeSelect.addEventListener("change", syncDescription);
+    syncDescription();
+  })();
+</script>
+{% endif %}
+{% endblock %}

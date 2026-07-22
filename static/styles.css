@@ -164,6 +164,46 @@ body {
   width: 100%;
 }
 
+.app-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1080;
+  background: rgba(8, 15, 26, 0.72);
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-modal {
+  width: min(760px, 100%);
+  max-height: min(88vh, 900px);
+  overflow: hidden;
+  border-radius: 1.25rem;
+  background: #f8fbff;
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.28);
+}
+
+.app-modal__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.25rem 1rem;
+  background: linear-gradient(135deg, #102a43 0%, #184e77 52%, #0b7285 100%);
+  color: #fff;
+}
+
+.app-modal__body {
+  padding: 1.25rem;
+  overflow: auto;
+  max-height: calc(88vh - 110px);
+}
+
+.app-modal__close {
+  white-space: nowrap;
+}
+
 @media (max-width: 767.98px) {
   .hero-card {
     padding: 1.25rem;
@@ -208,6 +248,17 @@ body {
 
   .mobile-select .form-check-input {
     margin-top: 0;
+  }
+
+  .app-modal {
+    width: 100%;
+    max-height: 92vh;
+    border-radius: 1rem;
+  }
+
+  .app-modal__body {
+    max-height: calc(92vh - 110px);
+    padding: 1rem;
   }
 }
 
