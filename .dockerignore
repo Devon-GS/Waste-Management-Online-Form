@@ -1,0 +1,11 @@
+.git
+.venv
+venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+waste_forms.db
+*.sqlite3
+*.db-journal
+*.log

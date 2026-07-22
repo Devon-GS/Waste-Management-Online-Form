@@ -23,3 +23,18 @@ flask --app app run
 - Lets you add or delete active stock items.
 - Lets you enter waste quantities and save them as a reusable form.
 - Provides a saved forms page with view, edit, delete, CSV export, and PDF export.
+
+## Docker
+
+Build and run with Docker Compose:
+
+```bash
+docker compose up --build
+```
+
+The container will run with:
+
+- Image name: `waste-management-image`
+- Container name: `waste-management`
+- Port: `5004` on the host mapped to the app inside the container
+- Persistent SQLite database stored in the `waste_management_data` volume

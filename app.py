@@ -20,11 +20,13 @@ from flask import (
 
 
 BASE_DIR = Path(__file__).resolve().parent
-DB_PATH = BASE_DIR / "waste_forms.db"
+DB_PATH = Path(os.environ.get("DB_PATH", str(BASE_DIR / "waste_forms.db")))
 CSV_PATH = BASE_DIR / "Stock Items.csv"
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-key")
+
+DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 
 def get_db() -> sqlite3.Connection:

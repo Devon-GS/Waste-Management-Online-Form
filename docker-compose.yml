@@ -1,0 +1,18 @@
+services:
+  waste-management:
+    image: waste-management-image
+    container_name: waste-management
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5004:5000"
+    environment:
+      DB_PATH: /data/waste_forms.db
+      SECRET_KEY: dev-secret-key
+    volumes:
+      - waste_management_data:/data
+    restart: unless-stopped
+
+volumes:
+  waste_management_data:
