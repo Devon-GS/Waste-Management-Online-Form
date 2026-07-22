@@ -17,7 +17,7 @@
     <div class="card-body">
       <div class="d-flex flex-column flex-md-row justify-content-between gap-2 align-items-md-center mb-3">
         <div>
-          <h2 class="h4 mb-1">Broken pie counts</h2>
+          <h2 class="h4 mb-1">Broken Pie Counts</h2>
           <p class="text-muted mb-0">Enter the number of broken pies for each code and save the snapshot.</p>
         </div>
       </div>
@@ -27,7 +27,7 @@
           <thead class="table-dark">
             <tr>
               <th style="width: 12%;">Code</th>
-              <th>Product description</th>
+              <th>Product Description</th>
               <th style="width: 18%;">Input</th>
             </tr>
           </thead>
@@ -60,7 +60,7 @@
     </div>
     <div class="card-footer bg-white border-0 pb-4">
       <div class="d-grid d-md-flex justify-content-md-end">
-        <button type="submit" class="btn btn-primary btn-lg mobile-action-btn">Save broken pies</button>
+        <button type="submit" class="btn btn-primary btn-lg mobile-action-btn">Save Broken Pies</button>
       </div>
     </div>
   </div>
@@ -70,7 +70,7 @@
   <div class="card-body">
     <div class="d-flex flex-column flex-md-row justify-content-between gap-2 align-items-md-center mb-3">
       <div>
-        <h2 class="h4 mb-1">Returned pies</h2>
+        <h2 class="h4 mb-1">Returned Pies</h2>
         <p class="text-muted mb-0">Save what pies were returned and the date returned.</p>
       </div>
     </div>
@@ -80,22 +80,22 @@
       <div class="col-md-2">
         <label class="form-label">Code</label>
         <select name="return_code" id="return-code" class="form-control">
-          <option value="">Select code</option>
+          <option value="">Select Code</option>
           {% for item in broken_pies %}
             <option value="{{ item.code }}" data-description="{{ item.product_description }}">{{ item.code }}</option>
           {% endfor %}
         </select>
       </div>
       <div class="col-md-5">
-        <label class="form-label">Product description</label>
+        <label class="form-label">Product Description</label>
         <input type="text" name="return_description" id="return-description" class="form-control" placeholder="Auto-filled from code" />
       </div>
       <div class="col-md-2">
-        <label class="form-label">Quantity returned</label>
+        <label class="form-label">Quantity Returned</label>
         <input type="number" min="0" step="1" name="return_quantity" class="form-control" value="0" />
       </div>
       <div class="col-md-2">
-        <label class="form-label">Date returned</label>
+        <label class="form-label">Date Returned</label>
         <input type="date" name="date_returned" class="form-control" value="{{ today }}" />
       </div>
       <div class="col-md-1 d-flex align-items-end">
@@ -109,7 +109,7 @@
   <div class="card-body">
     <div class="d-flex flex-column flex-md-row justify-content-between gap-2 align-items-md-center mb-3">
       <div>
-        <h2 class="h4 mb-1">Saved broken pie counts</h2>
+        <h2 class="h4 mb-1">Saved Broken Pie Counts</h2>
         <p class="text-muted mb-0">Recent saved snapshots of broken pie quantities.</p>
       </div>
     </div>
@@ -208,7 +208,7 @@
   <div class="card-body">
     <div class="d-flex flex-column flex-md-row justify-content-between gap-2 align-items-md-center mb-3">
       <div>
-        <h2 class="h4 mb-1">Returned pie log</h2>
+        <h2 class="h4 mb-1">Returned Pie Log</h2>
         <p class="text-muted mb-0">Records of returned pies and the date returned.</p>
       </div>
     </div>
@@ -218,9 +218,9 @@
         <thead class="table-dark">
           <tr>
             <th>Code</th>
-            <th>Product description</th>
+            <th>Product Description</th>
             <th>Quantity</th>
-            <th>Date returned</th>
+            <th>Date Returned</th>
             <th>Saved at</th>
             <th style="width: 12%;">Edit</th>
             <th style="width: 12%;">Delete</th>
@@ -300,7 +300,7 @@
           <thead class="table-dark">
             <tr>
               <th>Code</th>
-              <th>Product description</th>
+              <th>Product Description</th>
               <th>Quantity</th>
             </tr>
           </thead>
