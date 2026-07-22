@@ -132,7 +132,7 @@ def fetch_stock_items() -> list[sqlite3.Row]:
         """
         SELECT id, stock_code, product_description
         FROM stock_items
-        ORDER BY stock_code COLLATE NOCASE
+        ORDER BY product_description COLLATE NOCASE, stock_code COLLATE NOCASE
         """
     ).fetchall()
 
@@ -170,7 +170,7 @@ def fetch_form_items(form_id: int) -> list[sqlite3.Row]:
         SELECT id, stock_item_id, stock_code, product_description, quantity
         FROM waste_form_items
         WHERE waste_form_id = ?
-        ORDER BY stock_code COLLATE NOCASE
+        ORDER BY product_description COLLATE NOCASE, stock_code COLLATE NOCASE
         """,
         (form_id,),
     ).fetchall()
@@ -427,7 +427,7 @@ def index():
 @app.route("/stock-items/add", methods=["POST"])
 def add_stock_item():
     stock_code = request.form.get("stock_code", "").strip()
-    product_description = request.form.get("product_description", "").strip()
+    product_description = request.form.get("product_description", "").strip().upper()
 
     if not stock_code or not product_description:
         flash("Please provide both a stock code and a product description.", "danger")
@@ -486,9 +486,9 @@ def save_or_export_waste_form():
 
         deleted_count = delete_stock_items(selected_ids)
         if deleted_count:
-          flash(f"Deleted {deleted_count} stock item(s).", "warning")
+            flash(f"Deleted {deleted_count} stock item(s).", "warning")
         else:
-          flash("Select at least one stock item to delete.", "danger")
+            flash("Select at least one stock item to delete.", "danger")
         return redirect(url_for("index"))
 
     form_id = save_waste_form_from_request(stock_items)
