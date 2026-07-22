@@ -11,6 +11,7 @@
     />
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap-fallback.css') }}" />
+	 <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
   </head>
   <body>
     <nav class="navbar navbar-expand-lg navbar-dark navbar-shell sticky-top">
@@ -38,5 +39,19 @@
         {% block content %}{% endblock %}
       </div>
     </main>
+	 <footer class="bg-dark text-light py-3 mt-auto navbar-shell">
+        <div class="container text-center">
+            <p class="mb-1">
+                <a href="https://devon-gs.github.io/" class="text-light text-decoration-none" title="coded by" target="_blank">
+                    Coded by Devon - Redfire IT Solutions © <span id="year"></span>
+                </a>
+            </p>
+            <p class="mb-0 small">
+                <a href="https://www.flaticon.com/free-icons/waste" class="text-light text-decoration-none opacity-75" title="waste icons" target="_blank">
+                    Icons created by Magnific - Flaticon
+                </a>
+            </p>
+        </div>
+    </footer>
   </body>
 </html>
