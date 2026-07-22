@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Saved Waste Forms{% endblock %}
+{% block content %}
+<div class="hero-card mb-4">
+  <p class="eyebrow mb-2">Saved records</p>
+  <h1 class="display-6 fw-bold mb-2">All saved waste forms</h1>
+  <p class="text-white-50 mb-0">Open any form to view, edit, delete, or export it again later.</p>
+</div>
+
+<div class="card panel-card">
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead class="table-dark">
+          <tr>
+            <th>ID</th>
+            <th>Created at</th>
+            <th>Updated at</th>
+            <th>Filled lines</th>
+            <th>Total quantity</th>
+            <th style="width: 34%;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for form in forms %}
+            <tr>
+              <td class="fw-semibold">#{{ form.id }}</td>
+              <td>{{ form.created_at }}</td>
+              <td>{{ form.updated_at }}</td>
+              <td>{{ form.filled_lines }}</td>
+              <td>{{ form.total_quantity }}</td>
+              <td>
+                <div class="d-flex flex-wrap gap-2">
+                  <a class="btn btn-sm btn-primary" href="{{ url_for('view_form', form_id=form.id) }}">View</a>
+                  <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('edit_form', form_id=form.id) }}">Edit</a>
+                  <a class="btn btn-sm btn-outline-success" href="{{ url_for('export_form_csv', form_id=form.id) }}">CSV</a>
+                  <a class="btn btn-sm btn-outline-dark" href="{{ url_for('export_form_pdf', form_id=form.id) }}">PDF</a>
+                  <form method="post" action="{{ url_for('delete_form', form_id=form.id) }}" onsubmit="return confirm('Delete this saved form?');">
+                    <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+          {% if not forms %}
+            <tr>
+              <td colspan="6" class="text-center text-muted py-5">No saved forms yet. Create and save one from the main page.</td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

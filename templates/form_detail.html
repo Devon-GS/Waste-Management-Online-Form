@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Waste Form #{{ form.id }}{% endblock %}
+{% block content %}
+<div class="hero-card mb-4">
+  <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
+    <div>
+      <p class="eyebrow mb-2">Saved waste form</p>
+      <h1 class="display-6 fw-bold mb-2">Form #{{ form.id }}</h1>
+      <p class="text-white-50 mb-0">Created {{ form.created_at }} · Updated {{ form.updated_at }}</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-light fw-semibold" href="{{ url_for('forms_list') }}">Back to list</a>
+      <a class="btn btn-outline-light" href="{{ url_for('edit_form', form_id=form.id) }}">Edit</a>
+      <a class="btn btn-outline-light" href="{{ url_for('export_form_csv', form_id=form.id) }}">Export CSV</a>
+      <a class="btn btn-outline-light" href="{{ url_for('export_form_pdf', form_id=form.id) }}">Export PDF</a>
+    </div>
+  </div>
+</div>
+
+<div class="card panel-card">
+  <div class="card-body">
+    <div class="d-flex flex-wrap gap-3 mb-3">
+      <div class="metric-card">
+        <div class="metric-label">Filled lines</div>
+        <div class="metric-value">{{ filled_lines }}</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Total quantity</div>
+        <div class="metric-value">{{ total_quantity }}</div>
+      </div>
+    </div>
+
+    {% if edit_mode %}
+      <form method="post">
+        <div class="table-responsive">
+          <table class="table table-striped align-middle">
+            <thead class="table-dark">
+              <tr>
+                <th style="width: 18%;">Stock code</th>
+                <th>Product description</th>
+              <th style="width: 16%;">Quantity</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in items %}
+              <tr>
+                <td class="fw-semibold">{{ item.stock_code }}</td>
+                <td>{{ item.product_description }}</td>
+                <td>
+                  <input type="number" min="0" step="1" name="qty_{{ item.id }}" class="form-control" value="{{ item.quantity }}" />
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="d-flex justify-content-end gap-2 mt-3">
+          <button type="submit" class="btn btn-primary btn-lg">Save changes</button>
+        </div>
+      </form>
+    {% else %}
+      <div class="table-responsive">
+        <table class="table table-striped align-middle">
+          <thead class="table-dark">
+            <tr>
+              <th style="width: 18%;">Stock code</th>
+              <th>Product description</th>
+              <th style="width: 16%;">Quantity</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in items %}
+              <tr>
+                <td class="fw-semibold">{{ item.stock_code }}</td>
+                <td>{{ item.product_description }}</td>
+                <td>{{ item.quantity }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

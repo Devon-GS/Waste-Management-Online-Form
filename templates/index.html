@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}New Waste Form{% endblock %}
+{% block content %}
+<div class="hero-card mb-4">
+  <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-end">
+    <div>
+      <p class="eyebrow mb-2">Stock waste entry</p>
+      <h1 class="display-6 fw-bold mb-2">Create a new waste form</h1>
+      <p class="text-white-50 mb-0">Add stock items, enter waste quantities, then save or export the form anytime.</p>
+    </div>
+    <a class="btn btn-light btn-lg fw-semibold" href="{{ url_for('forms_list') }}">View saved forms</a>
+  </div>
+</div>
+
+<div class="card panel-card mb-4">
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="h4 mb-0">Add stock item</h2>
+      <span class="text-muted small">Updates the available list used on the form</span>
+    </div>
+    <form method="post" action="{{ url_for('add_stock_item') }}" class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label">Stock code</label>
+        <input type="text" name="stock_code" class="form-control" placeholder="Enter stock code" />
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Product description</label>
+        <input type="text" name="product_description" class="form-control" placeholder="Enter product description" />
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <button class="btn btn-primary w-100" type="submit">Add item</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<form method="post" action="{{ url_for('save_or_export_waste_form') }}">
+  <div class="card panel-card">
+    <div class="card-body">
+      <div class="d-flex flex-column flex-lg-row justify-content-between gap-2 align-items-lg-center mb-3">
+        <div>
+          <h2 class="h4 mb-1">Waste quantity table</h2>
+          <p class="text-muted mb-0">Enter the number of each product to waste. Use Delete to remove a stock item.</p>
+        </div>
+        <div class="text-muted small">Total stock items: {{ stock_items|length }}</div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-striped align-middle">
+          <thead class="table-dark">
+            <tr>
+              <th style="width: 18%;">Stock code</th>
+              <th>Product description</th>
+              <th style="width: 16%;">Quantity</th>
+              <th style="width: 12%;">Remove</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in stock_items %}
+              <tr>
+                <td class="fw-semibold">{{ item.stock_code }}</td>
+                <td>{{ item.product_description }}</td>
+                <td>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    name="qty_{{ item.id }}"
+                    class="form-control"
+                    value="0"
+                  />
+                </td>
+                <td>
+                  <button
+                    class="btn btn-outline-danger btn-sm"
+                    type="submit"
+                    formaction="{{ url_for('delete_stock_item', item_id=item.id) }}"
+                    formmethod="post"
+                    formnovalidate
+                    onclick="return confirm('Delete this stock item from the active list?');"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            {% endfor %}
+            {% if not stock_items %}
+              <tr>
+                <td colspan="4" class="text-center text-muted py-4">No stock items available yet. Add one above to start.</td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card-footer bg-white border-0 pb-4">
+      <div class="d-flex flex-column flex-md-row gap-2 justify-content-end">
+        <button type="submit" name="action" value="save" class="btn btn-primary btn-lg">Save</button>
+        <button type="submit" name="action" value="export_csv" class="btn btn-outline-primary btn-lg">Export CSV</button>
+        <button type="submit" name="action" value="export_pdf" class="btn btn-outline-dark btn-lg">Export PDF</button>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}
