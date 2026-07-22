@@ -45,8 +45,19 @@
         <div class="text-muted small">Total stock items: {{ stock_items|length }}</div>
       </div>
 
+      <div class="mb-3">
+        <label for="stock-search" class="form-label">Search by product description</label>
+        <input
+          id="stock-search"
+          type="search"
+          class="form-control"
+          placeholder="Type to filter the table"
+          autocomplete="off"
+        />
+      </div>
+
       <div class="table-responsive">
-        <table class="table table-striped align-middle">
+        <table class="table table-striped align-middle" id="stock-table">
           <thead class="table-dark">
             <tr>
               <th style="width: 5%;">Select</th>
@@ -99,6 +110,11 @@
                 <td colspan="5" class="text-center text-muted py-4">No stock items available yet. Add one above to start.</td>
               </tr>
             {% endif %}
+            {% if stock_items %}
+              <tr data-search-empty style="display: none;">
+                <td colspan="5" class="text-center text-muted py-4">No matching product descriptions found.</td>
+              </tr>
+            {% endif %}
           </tbody>
         </table>
       </div>
@@ -121,4 +137,34 @@
     </div>
   </div>
 </form>
+<script>
+  (function () {
+    const input = document.getElementById("stock-search");
+    const table = document.getElementById("stock-table");
+    if (!input || !table) return;
+
+    const rows = Array.from(table.querySelectorAll("tbody tr"));
+
+    function applyFilter() {
+      const query = input.value.trim().toLowerCase();
+      let visibleCount = 0;
+
+      rows.forEach((row) => {
+        const descriptionCell = row.querySelector("td:nth-child(3)");
+        const text = descriptionCell ? descriptionCell.textContent.toLowerCase() : "";
+        const visible = !query || text.includes(query);
+        row.style.display = visible ? "" : "none";
+        if (visible) visibleCount += 1;
+      });
+
+      const existingEmpty = table.querySelector("[data-search-empty]");
+      if (existingEmpty) {
+        existingEmpty.style.display = visibleCount ? "none" : "";
+      }
+    }
+
+    input.addEventListener("input", applyFilter);
+    applyFilter();
+  })();
+</script>
 {% endblock %}
