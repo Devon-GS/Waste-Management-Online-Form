@@ -207,6 +207,10 @@ footer {
   max-height: calc(88vh - 110px);
 }
 
+.modal-table-responsive {
+  overflow-x: auto;
+}
+
 .app-modal__close {
   white-space: nowrap;
 }
